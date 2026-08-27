@@ -1,0 +1,76 @@
+# Regenerates the telemetry panels from public GitHub data.
+#
+# WHAT IT DOES
+#   Runs scripts/gen_telemetry.py, which reads two public endpoints for this
+#   account (the contribution calendar and the repos + per-repo language lists),
+#   redraws assets/telemetry.svg and assets/telemetry-narrow.svg — the desktop
+#   and phone compositions the README picks between with a <picture> media query
+#   — and commits them only if the bytes changed.
+#
+# WHY IT EXISTS
+#   The README used to pull two images from github-readme-stats.vercel.app, which
+#   was returning HTTP 503 DEPLOYMENT_PAUSED — the profile's only stats were
+#   broken images. Generating the panel here means the README depends on this
+#   repository and nothing else.
+#
+# SECURITY / COST NOTES
+#   * No secrets. GITHUB_TOKEN is the token GitHub mints for this run
+#     automatically; there is no PAT to create, store or rotate. It is used only
+#     to raise the REST rate limit and to push the regenerated file.
+#   * Least privilege: contents:write is the only permission granted, and the
+#     default for every other scope is none.
+#   * No third-party actions — only actions/checkout, which GitHub publishes.
+#   * No dependency installation. The script imports the Python standard library
+#     only, so there is no pip step and no supply chain to trust.
+#   * Fork-guarded, so a fork of this profile never runs it or pushes to itself.
+#   * The script exits 0 without touching the SVGs if any fetch or parse fails,
+#     so a rate limit or a GitHub HTML change leaves a slightly stale panel
+#     rather than a broken image.
+
+name: telemetry
+
+on:
+  schedule:
+    # 03:20 UTC daily. Off the hour on purpose: scheduled runs bunched on :00
+    # are the ones GitHub delays most under load.
+    - cron: "20 3 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+# A queued nightly run and a manual run must not race each other into a push.
+concurrency:
+  group: telemetry
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    if: github.repository_owner == 'DushyantBhardwaj2'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Regenerate telemetry panels
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/gen_telemetry.py
+
+      - name: Commit if changed
+        run: |
+          # Both panels are generated from the same fetch, so scope the check and
+          # the add to the pair. Naming them explicitly rather than using `git add
+          # -A` keeps the job unable to commit anything else that appears in the
+          # workspace.
+          PANELS="assets/telemetry.svg assets/telemetry-narrow.svg"
+          if [ -z "$(git status --porcelain -- $PANELS)" ]; then
+            echo "No change — nothing to commit."
+            exit 0
+          fi
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -- $PANELS
+          git commit -m "chore(telemetry): refresh profile telemetry panels"
+          git push

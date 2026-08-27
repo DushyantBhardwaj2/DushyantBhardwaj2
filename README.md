@@ -34,16 +34,11 @@ I’m passionate about building reliable, user-focused software and turning idea
 
 ## 📌 Featured Projects
 
-> Replace/add these with your best repositories to make this section stronger for HR.
+- **Poker AI** — [View Repository](https://github.com/DushyantBhardwaj2/Poker_AI)  
+  AI-driven poker project combining **Python** and **TypeScript** for strategy modeling and practical application logic.
 
-- **Project 1 – [Your Project Name](https://github.com/DushyantBhardwaj2?tab=repositories)**  
-  Short 1-line description of what problem it solves and key tech used.
-
-- **Project 2 – [Your Project Name](https://github.com/DushyantBhardwaj2?tab=repositories)**  
-  Highlight impact/results (e.g., faster performance, cleaner UX, automation).
-
-- **Project 3 – [Your Project Name](https://github.com/DushyantBhardwaj2?tab=repositories)**  
-  Mention one technical challenge you solved.
+- **ResumeMint (resumeDatabase)** — [View Repository](https://github.com/DushyantBhardwaj2/resumeDatabase)  
+  Full-stack resume platform built primarily with **TypeScript** and **HTML**, featuring resume workflows and LaTeX-based output support.
 
 ---
 
